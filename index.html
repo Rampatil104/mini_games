@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mini Games Hub — 12 Games</title>
+  <style>
+    :root{ --bg:#071635; --panel:#082044; --accent:#2dd4bf; --muted:rgba(255,255,255,0.75); }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#04112a 0%,var(--bg) 60%);color:#ffffff;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;display:flex;flex-direction:column;align-items:center;padding:18px}
+    header{width:100%;max-width:1200px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    h1{margin:0;font-size:20px}
+    .subtitle{color:var(--muted);font-size:13px}
+    .container{width:100%;max-width:1200px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;padding:12px;display:grid;grid-template-columns:260px 1fr;gap:14px}
+    .sidebar{background:var(--panel);padding:12px;border-radius:10px;max-height:70vh;overflow:auto}
+    .game-btn{display:block;padding:10px;border-radius:8px;margin-bottom:8px;background:transparent;border:1px solid rgba(255,255,255,0.05);color:#fff;text-align:left;cursor:pointer}
+    .game-btn.active{background:linear-gradient(90deg,rgba(45,212,191,0.08),rgba(59,130,246,0.04));border-color:rgba(45,212,191,0.15)}
+    .panel{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;min-height:640px;overflow:auto}
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    button.btn{background:var(--accent);border:none;color:#002; padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#fff}
+    .status{color:var(--muted);margin-top:8px}
+    .ttt-board{display:grid;grid-template-columns:repeat(3,110px);grid-auto-rows:110px;gap:8px;justify-content:center}
+    .cell{display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.18);border-radius:8px;font-size:44px;cursor:pointer}
+    input[type=number]{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    .coin{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:linear-gradient(180deg,#ffd27a,#ffb347);color:#2b1a00;margin:18px auto}
+    canvas{background:#02102a;border-radius:8px;display:block;margin:12px auto}
+    .small{width:200px}
+    footer{width:100%;max-width:1200px;text-align:center;color:var(--muted);margin-top:12px;font-size:13px}
+    @media (max-width:900px){.container{grid-template-columns:1fr} .ttt-board{grid-template-columns:repeat(3,80px);grid-auto-rows:80px} }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Mini Games Hub</h1>
+      <div class="subtitle"> Best 12 Games </div>
+    </div>
+    <div class="subtitle">Click a game you want to play & it works offline</div>
+  </header>
+
+  <main class="container">
+    <aside class="sidebar">
+      <div style="font-size:13px;margin-bottom:8px;color:var(--muted)">Games</div>
+      <div id="menu">
+        <button class="game-btn active" data-game="ttt">❌⭕ Tic‑Tac‑Toe</button>
+        <button class="game-btn" data-game="guess">🔢 Number Guess</button>
+        <button class="game-btn" data-game="coin">📀 Coin Flip</button>
+        <button class="game-btn" data-game="snake">🐍 Snake</button>
+        <button class="game-btn" data-game="shoot">🎯 Shooting (small balls)</button>
+        <button class="game-btn" data-game="flappy">🐦 Flappy</button>
+
+        <button class="game-btn" data-game="pong">🏓 Pong</button>
+        <button class="game-btn" data-game="memory">🧠 Memory</button>
+        <button class="game-btn" data-game="simon">🔆 Simon</button>
+        <button class="game-btn" data-game="whack">🔨 Whack‑a‑Mole</button>
+        <button class="game-btn" data-game="catch">🥎 Catch</button>
+      </div>
+      <hr style="border:0;border-top:1px dashed rgba(255,255,255,0.04);margin:12px 0">
+      <div style="color:var(--muted);font-size:13px">Controls:
+        <ul style="margin:6px 0 0 16px;padding:0;color:var(--muted)">
+          <li>Arrows / WASD for Snake & Catch paddle</li>
+          <li>Space to flap (Flappy), click to shoot/hit</li>
+          <li>Use mouse to click targets/cards</li>
+        </ul>
+      </div>
+    </aside>
+
+    <section class="panel" id="panel">
+      <!-- Tic Tac Toe -->
+      <div class="game" id="ttt">
+        <h2>Tic‑Tac‑Toe</h2>
+        <div class="controls">
+          <button class="btn" id="ttt-reset">New Game</button>
+          <button class="btn secondary" id="ttt-toggle-ai">Play: Human</button>
+          <div style="margin-left:auto;color:var(--muted)">Turn: <span id="ttt-turn">X</span></div>
+        </div>
+        <div class="ttt-board" id="board"></div>
+        <div class="status" id="ttt-status"></div>
+      </div>
+
+      <!-- Number Guess -->
+      <div class="game" id="guess" style="display:none">
+        <h2>Number Guess (1–100)</h2>
+        <div class="controls">
+          <button class="btn" id="guess-new">New</button>
+          <div style="margin-left:auto;color:var(--muted)">Attempts: <span id="guess-left">7</span></div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="guess-input" type="number" min="1" max="100" placeholder="1-100">
+          <button class="btn" id="guess-btn">Guess</button>
+          <button class="btn secondary" id="hint-btn">Hint</button>
+        </div>
+        <div class="status" id="guess-status"></div>
+      </div>
+
+      <!-- Coin Flip -->
+      <div class="game" id="coin" style="display:none">
+        <h2>Coin Flip</h2>
+        <div class="controls">
+          <button class="btn" id="flip-btn">Flip</button>
+          <button class="btn secondary" id="flip-reset">Reset</button>
+        </div>
+        <div class="coin" id="coin-face">--</div>
+        <div class="status" id="coin-status"></div>
+      </div>
+
+      <!-- Snake -->
+      <div class="game" id="snake" style="display:none">
+        <h2>Snake</h2>
+        <div class="controls">
+          <button class="btn" id="snake-start">Start</button>
+          <button class="btn secondary" id="snake-reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted)">Score: <span id="snake-score">0</span></div>
+        </div>
+        <canvas id="snake-canvas" width="400" height="400"></canvas>
+        <div class="status" id="snake-status"></div>
+      </div>
+
+      <!-- Shooting (small balls) -->
+      <div class="game" id="shoot" style="display:none">
+        <h2>Shooting Range — Small balls</h2>
+        <div class="controls">
+          <button class="btn" id="shoot-start">Start</button>
+          <button class="btn secondary" id="shoot-reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted)">Hits: <span id="shoot-hits">0</span></div>
+        </div>
+        <canvas id="shoot-canvas" width="500" height="300"></canvas>
+        <div class="status" id="shoot-status"></div>
+      </div>
+
+      <!-- Flappy -->
+      <div class="game" id="flappy" style="display:none">
+        <h2>Flappy Mini</h2>
+        <div class="controls">
+          <button class="btn" id="flappy-start">Start</button>
+          <button class="btn secondary" id="flappy-reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted)">Score: <span id="flappy-score">0</span></div>
+        </div>
+        <canvas id="flappy-canvas" width="400" height="400"></canvas>
+        <div class="status" id="flappy-status"></div>
+      </div>
+
+    
+
+      <!-- Pong -->
+      <div class="game" id="pong" style="display:none">
+        <h2>Pong (vs simple AI)</h2>
+        <div class="controls">
+          <button class="btn" id="pong-start">Start</button>
+          <button class="btn secondary" id="pong-reset">Reset</button>
+        </div>
+        <canvas id="pong-canvas" width="600" height="320"></canvas>
+        <div class="status" id="pong-status"></div>
+      </div>
+
+      <!-- Memory -->
+      <div class="game" id="memory" style="display:none">
+        <h2>Memory Match (6 pairs)</h2>
+        <div class="controls">
+          <button class="btn" id="mem-new">New</button>
+        </div>
+        <div id="mem-board" style="display:grid;grid-template-columns:repeat(4,90px);gap:8px;justify-content:center;margin-top:8px"></div>
+        <div class="status" id="mem-status"></div>
+      </div>
+
+      <!-- Simon -->
+      <div class="game" id="simon" style="display:none">
+        <h2>Simon Says</h2>
+        <div class="controls">
+          <button class="btn" id="simon-start">Start</button>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          <button class="btn secondary small" id="simon-0">1</button>
+          <button class="btn secondary small" id="simon-1">2</button>
+          <button class="btn secondary small" id="simon-2">3</button>
+          <button class="btn secondary small" id="simon-3">4</button>
+        </div>
+        <div class="status" id="simon-status"></div>
+      </div>
+
+      <!-- Whack-a-Mole -->
+      <div class="game" id="whack" style="display:none">
+        <h2>Whack‑a‑Mole</h2>
+        <div class="controls">
+          <button class="btn" id="whack-start">Start</button>
+          <button class="btn secondary" id="whack-reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted)">Score: <span id="whack-score">0</span></div>
+        </div>
+        <div id="whack-board" style="display:grid;grid-template-columns:repeat(4,80px);gap:8px;justify-content:center;margin-top:12px"></div>
+      </div>
+
+      <!-- Catch -->
+      <div class="game" id="catch" style="display:none">
+        <h2>Catch the Falling Items</h2>
+        <div class="controls">
+          <button class="btn" id="catch-start">Start</button>
+          <button class="btn secondary" id="catch-reset">Reset</button>
+          <div style="margin-left:auto;color:var(--muted)">Score: <span id="catch-score">0</span></div>
+        </div>
+        <canvas id="catch-canvas" width="480" height="320"></canvas>
+        <div class="status" id="catch-status"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>Made by :- Ram_Patil </footer>
+
+  <script>
+  // UI switching
+  const menu = document.getElementById('menu'); const gameBtns = Array.from(menu.querySelectorAll('.game-btn')); const games = document.querySelectorAll('.game');
+  function showGame(name){ games.forEach(g=> g.style.display = g.id===name?'':'none'); gameBtns.forEach(b=> b.classList.toggle('active', b.dataset.game===name)); }
+  menu.addEventListener('click', e=>{ const b = e.target.closest('.game-btn'); if(!b) return; showGame(b.dataset.game); });
+
+  // ---------- TTT ----------
+  const boardEl = document.getElementById('board'); const tttReset = document.getElementById('ttt-reset'); const tttToggleAi = document.getElementById('ttt-toggle-ai'); const tttTurnEl = document.getElementById('ttt-turn'); const tttStatus = document.getElementById('ttt-status');
+  let tttBoard = Array(9).fill(''), tttTurn='X', tttOver=false, tttAi=false;
+  function renderBoard(){ boardEl.innerHTML=''; tttBoard.forEach((v,i)=>{ const c=document.createElement('div'); c.className='cell'; c.dataset.i=i; c.textContent=v; c.addEventListener('click', ()=>{ if(tttOver) return; if(tttBoard[i]) return; makeMove(i); }); boardEl.appendChild(c); }); tttTurnEl.textContent=tttTurn; }
+  function checkWinner(b){ const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]; for(const w of wins){ const [a,c,d]=w; if(b[a] && b[a]===b[c] && b[a]===b[d]) return b[a]; } if(b.every(x=>x)) return 'draw'; return null; }
+  function makeMove(i){ if(tttBoard[i]||tttOver) return; tttBoard[i]=tttTurn; renderBoard(); const res=checkWinner(tttBoard); if(res){ tttOver=true; tttStatus.textContent = res==='draw'?'Draw!':(res+' wins!'); return; } tttTurn = tttTurn==='X'?'O':'X'; if(tttAi && tttTurn==='O') setTimeout(aiMove,250); }
+  function aiMove(){ for(let i=0;i<9;i++) if(!tttBoard[i]){ const c=tttBoard.slice(); c[i]='O'; if(checkWinner(c)==='O'){ makeMove(i); return; } } for(let i=0;i<9;i++) if(!tttBoard[i]){ const c=tttBoard.slice(); c[i]='X'; if(checkWinner(c)==='X'){ makeMove(i); return; } } if(!tttBoard[4]){ makeMove(4); return; } const empties = tttBoard.map((v,i)=>v?null:i).filter(x=>x!==null); const pick = empties[Math.floor(Math.random()*empties.length)]; if(pick!=null) makeMove(pick); }
+  function tttNew(){ tttBoard=Array(9).fill(''); tttTurn='X'; tttOver=false; tttStatus.textContent=''; renderBoard(); } tttReset.addEventListener('click', tttNew); tttToggleAi.addEventListener('click', ()=>{ tttAi=!tttAi; tttToggleAi.textContent = tttAi? 'Play: Vs Computer' : 'Play: Human'; if(tttAi && tttTurn==='O') aiMove(); }); tttNew();
+
+  // ---------- Number Guess ----------
+  const guessNew = document.getElementById('guess-new'); const guessBtn = document.getElementById('guess-btn'); const guessInput = document.getElementById('guess-input'); const guessStatus = document.getElementById('guess-status'); const guessLeft = document.getElementById('guess-left'); const hintBtn = document.getElementById('hint-btn');
+  let secret=null, attempts=7; function newRound(){ secret=Math.floor(Math.random()*100)+1; attempts=7; guessLeft.textContent=attempts; guessStatus.textContent='Guess a number 1–100'; guessInput.value=''; } guessNew.addEventListener('click', newRound);
+  guessBtn.addEventListener('click', ()=>{ const v=parseInt(guessInput.value,10); if(!v||v<1||v>100){ guessStatus.textContent='Enter 1–100'; return; } attempts--; guessLeft.textContent=attempts; if(v===secret){ guessStatus.textContent=`Correct! ${secret}`; return; } if(attempts<=0){ guessStatus.textContent=`Out! It was ${secret}`; return; } guessStatus.textContent = v<secret? 'Too low':'Too high'; }); hintBtn.addEventListener('click', ()=>{ if(secret==null) return; const half = secret<=50? '<=50': '>50'; guessStatus.textContent = `Hint: ${half}`; attempts--; guessLeft.textContent=attempts; if(attempts<=0) guessStatus.textContent += ` Out! ${secret}`; }); newRound();
+
+  // ---------- Coin Flip ----------
+  const flipBtn = document.getElementById('flip-btn'); const flipReset = document.getElementById('flip-reset'); const coinFace = document.getElementById('coin-face'); const coinStatus = document.getElementById('coin-status'); let flipCount=0; if(flipBtn){ flipBtn.addEventListener('click', ()=>{ coinFace.classList.remove('flip-anim'); void coinFace.offsetWidth; coinFace.classList.add('flip-anim'); flipCount++; const res=Math.random()<0.5?'HEADS':'TAILS'; setTimeout(()=>{ coinFace.textContent=res; coinStatus.textContent=`Result: ${res} (#${flipCount})`; },420); }); } if(flipReset){ flipReset.addEventListener('click', ()=>{ flipCount=0; coinFace.textContent='--'; coinStatus.textContent=''; }); }
+
+  // ---------- Snake ----------
+  (function(){ const canvas = document.getElementById('snake-canvas'); if(!canvas) return; const ctx = canvas.getContext('2d'); const startBtn=document.getElementById('snake-start'); const resetBtn=document.getElementById('snake-reset'); const scoreEl=document.getElementById('snake-score'); const status=document.getElementById('snake-status'); const gridSize=20; let cell = canvas.width/gridSize; let snake, dir, food, running, score, timer;
+    function init(){ snake=[{x:8,y:8},{x:7,y:8},{x:6,y:8}]; dir={x:1,y:0}; placeFood(); score=0; scoreEl.textContent=score; running=false; status.textContent=''; }
+    function placeFood(){ food={x:Math.floor(Math.random()*gridSize), y:Math.floor(Math.random()*gridSize)}; if(snake.some(s=>s.x===food.x && s.y===food.y)) placeFood(); }
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); cell = canvas.width/gridSize; ctx.fillStyle='#ffb86b'; ctx.fillRect(food.x*cell, food.y*cell, cell, cell); ctx.fillStyle='#3b82f6'; snake.forEach(s=> ctx.fillRect(s.x*cell+1, s.y*cell+1, cell-2, cell-2)); }
+    function step(){ const head={x:snake[0].x+dir.x, y:snake[0].y+dir.y}; head.x=(head.x+gridSize)%gridSize; head.y=(head.y+gridSize)%gridSize; if(snake.some(s=>s.x===head.x && s.y===head.y)){ running=false; status.textContent='Game Over'; clearInterval(timer); return; } snake.unshift(head); if(head.x===food.x && head.y===food.y){ score++; scoreEl.textContent=score; placeFood(); } else snake.pop(); draw(); }
+    window.addEventListener('keydown', e=>{ if(document.getElementById('snake').style.display==='none') return; const k=e.key; if((k==='ArrowUp'||k==='w'||k==='W') && dir.y!==1) dir={x:0,y:-1}; if((k==='ArrowDown'||k==='s'||k==='S') && dir.y!==-1) dir={x:0,y:1}; if((k==='ArrowLeft'||k==='a'||k==='A') && dir.x!==1) dir={x:-1,y:0}; if((k==='ArrowRight'||k==='d'||k==='D') && dir.x!==-1) dir={x:1,y:0}; });
+    startBtn.addEventListener('click', ()=>{ if(running) return; init(); running=true; timer=setInterval(step,110); }); resetBtn.addEventListener('click', ()=>{ running=false; clearInterval(timer); init(); draw(); }); init(); draw(); })();
+
+  // ---------- Shooting (small balls) ----------
+  (function(){ const canvas=document.getElementById('shoot-canvas'); if(!canvas) return; const ctx=canvas.getContext('2d'); const startBtn=document.getElementById('shoot-start'); const resetBtn=document.getElementById('shoot-reset'); const hitsEl=document.getElementById('shoot-hits'); const status=document.getElementById('shoot-status'); let targets=[], running=false, hits=0, timer; const BALL_R = 10; // small balls
+    function spawn(){ targets=[]; for(let i=0;i<10;i++){ targets.push({x:30+Math.random()*(canvas.width-60), y:20+Math.random()*(canvas.height-40), r:BALL_R, vx:(Math.random()*1.2-0.6), vy:(Math.random()*1.2-0.6)}); } }
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#ff6b6b'; for(const t of targets){ ctx.beginPath(); ctx.arc(t.x,t.y,t.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.stroke(); } }
+    function update(){ for(const t of targets){ t.x += t.vx; t.y += t.vy; if(t.x < t.r || t.x > canvas.width - t.r) t.vx *= -1; if(t.y < t.r || t.y > canvas.height - t.r) t.vy *= -1; } draw(); }
+    canvas.addEventListener('click', e=>{ if(!running) return; const rect=canvas.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top; for(let i=targets.length-1;i>=0;i--){ const t=targets[i]; const d=Math.hypot(t.x-x,t.y-y); if(d<=t.r){ targets.splice(i,1); hits++; hitsEl.textContent=hits; status.textContent='Hit!'; draw(); return; } } status.textContent='Miss'; });
+    startBtn.addEventListener('click', ()=>{ if(running) return; running=true; hits=0; hitsEl.textContent=hits; spawn(); draw(); status.textContent=''; timer=setInterval(update,40); });
+    resetBtn.addEventListener('click', ()=>{ running=false; clearInterval(timer); hits=0; hitsEl.textContent=hits; spawn(); draw(); status.textContent=''; }); spawn(); draw(); })();
+
+  // ---------- Flappy ----------
+  (function(){ const canvas=document.getElementById('flappy-canvas'); if(!canvas) return; const ctx=canvas.getContext('2d'); const startBtn=document.getElementById('flappy-start'); const resetBtn=document.getElementById('flappy-reset'); const scoreEl=document.getElementById('flappy-score'); const status=document.getElementById('flappy-status'); let bird, pipes, gravity, tick, running, timer; function init(){ bird={x:60,y:200,vy:0}; gravity=0.6; pipes=[]; tick=0; running=false; scoreEl.textContent=0; status.textContent=''; }
+    function spawnPipe(){ const gap=110; const top = Math.random()*(canvas.height - gap - 40) + 20; pipes.push({x:canvas.width,y:0, top:top}); }
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#0b314a'; for(const p of pipes){ ctx.fillRect(p.x,0,50,p.top); ctx.fillRect(p.x,p.top+110,50,canvas.height-(p.top+110)); } ctx.fillStyle='#ffdc73'; ctx.fillRect(bird.x-10,bird.y-10,20,20); }
+    function step(){ bird.vy += gravity; bird.y += bird.vy; if(bird.y>canvas.height || bird.y<0){ gameOver(); return; } for(const p of pipes) p.x -=2.6; if(tick%90===0) spawnPipe(); if(pipes.length && pipes[0].x < -60) { pipes.shift(); scoreEl.textContent = parseInt(scoreEl.textContent||0)+1; } for(const p of pipes){ if(bird.x+10>p.x && bird.x-10<p.x+50){ if(bird.y-10 < p.top || bird.y+10 > p.top+110){ gameOver(); return; } } } draw(); tick++; }
+    function flap(){ bird.vy = -8; }
+    function gameOver(){ running=false; status.textContent='Game Over'; clearInterval(timer); }
+    window.addEventListener('keydown', (e)=>{ if(document.getElementById('flappy').style.display==='none') return; if(e.code==='Space'){ if(!running) startBtn.click(); flap(); e.preventDefault(); } });
+    startBtn.addEventListener('click', ()=>{ if(running) return; init(); running=true; timer=setInterval(step,20); }); resetBtn.addEventListener('click', ()=>{ running=false; clearInterval(timer); init(); draw(); }); init(); draw(); })();
+
+  
+  // ---------- Pong ----------
+  (function(){ const canvas=document.getElementById('pong-canvas'); if(!canvas) return; const ctx=canvas.getContext('2d'); const startBtn=document.getElementById('pong-start'); const resetBtn=document.getElementById('pong-reset'); let paddleH=80; let left={x:10,y:120}, right={x:canvas.width-20,y:120}, ball={x:canvas.width/2,y:canvas.height/2,vx:4,vy:2}, timer, running=false;
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#3b82f6'; ctx.fillRect(left.x,left.y,10,paddleH); ctx.fillRect(right.x,right.y,10,paddleH); ctx.beginPath(); ctx.arc(ball.x,ball.y,8,0,Math.PI*2); ctx.fillStyle='#ffd27a'; ctx.fill(); }
+    function step(){ ball.x += ball.vx; ball.y += ball.vy; if(ball.y<8||ball.y>canvas.height-8) ball.vy*=-1; // left paddle
+      if(ball.x<left.x+10 && ball.y>left.y && ball.y<left.y+paddleH) ball.vx*=-1.05; // right paddle AI
+      if(ball.x>right.x-8 && ball.y>right.y && ball.y<right.y+paddleH) ball.vx*=-1.05; // simple AI move
+      // AI moves towards ball
+      if(right.y + paddleH/2 < ball.y) right.y += 3; if(right.y + paddleH/2 > ball.y) right.y -= 3; draw(); }
+    window.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const my=e.clientY-rect.top; left.y = Math.max(0, Math.min(canvas.height-paddleH, my - paddleH/2)); });
+    startBtn.addEventListener('click', ()=>{ if(running) return; running=true; timer=setInterval(step,16); }); resetBtn.addEventListener('click', ()=>{ running=false; clearInterval(timer); ball={x:canvas.width/2,y:canvas.height/2,vx:4,vy:2}; draw(); }); draw(); })();
+
+  // ---------- Memory ----------
+  (function(){ const board=document.getElementById('mem-board'); const status=document.getElementById('mem-status'); const newBtn=document.getElementById('mem-new'); if(!board) return; let cards=[], first=null, second=null, lock=false, matches=0;
+    function init(){ const vals=[1,1,2,2,3,3,4,4,5,5,6,6]; vals.sort(()=>Math.random()-0.5); cards=vals.map((v,i)=>({v,el:null,found:false})); board.innerHTML=''; cards.forEach((c,i)=>{ const d=document.createElement('div'); d.style.width='90px'; d.style.height='90px'; d.style.borderRadius='8px'; d.style.background='rgba(255,255,255,0.04)'; d.style.display='flex'; d.style.alignItems='center'; d.style.justifyContent='center'; d.style.cursor='pointer'; d.style.fontSize='28px'; d.textContent='?'; d.addEventListener('click', ()=> flip(i)); board.appendChild(d); c.el=d; }); first=second=null; lock=false; matches=0; status.textContent='Find pairs'; }
+    function flip(i){ if(lock) return; const c=cards[i]; if(c.found || c===first) return; c.el.textContent=c.v; if(!first) { first=c; return; } second=c; lock=true; if(first.v===second.v){ first.found=second.found=true; matches++; status.textContent = 'Match!'; lock=false; first=second=null; if(matches===6) status.textContent='You won!'; } else { status.textContent='Try again'; setTimeout(()=>{ first.el.textContent='?'; second.el.textContent='?'; lock=false; first=second=null; },700); } }
+    newBtn.addEventListener('click', init); init(); })();
+
+  // ---------- Simon ----------
+  (function(){ const startBtn=document.getElementById('simon-start'); const status=document.getElementById('simon-status'); const buttons=[0,1,2,3].map(i=>document.getElementById('simon-'+i)); if(!startBtn) return; let seq=[], playerIdx=0, running=false;
+    function flash(i){ const b=buttons[i]; b.style.opacity='0.4'; setTimeout(()=> b.style.opacity='1',200); }
+    function next(){ seq.push(Math.floor(Math.random()*4)); playSeq(); }
+    function playSeq(){ running=true; let i=0; const t=setInterval(()=>{ flash(seq[i]); i++; if(i>=seq.length){ clearInterval(t); running=false; playerIdx=0; status.textContent='Your turn'; } },600); }
+    buttons.forEach((b,i)=> b.addEventListener('click', ()=>{ if(running) return; flash(i); if(seq[playerIdx]===i){ playerIdx++; if(playerIdx===seq.length){ status.textContent='Good! Next round.'; setTimeout(next,700); } } else { status.textContent='Wrong! Press Start'; seq=[]; } })); startBtn.addEventListener('click', ()=>{ seq=[]; next(); status.textContent='Watch the sequence'; }); })();
+
+  // ---------- Whack-a-Mole ----------
+  (function(){ const board=document.getElementById('whack-board'); const startBtn=document.getElementById('whack-start'); const resetBtn=document.getElementById('whack-reset'); const scoreEl=document.getElementById('whack-score'); if(!board) return; let holes=[], timer;
+    function init(){ board.innerHTML=''; holes=[]; for(let i=0;i<8;i++){ const d=document.createElement('div'); d.style.width='80px'; d.style.height='80px'; d.style.borderRadius='8px'; d.style.background='rgba(255,255,255,0.02)'; d.style.display='flex'; d.style.alignItems='center'; d.style.justifyContent='center'; d.style.cursor='pointer'; d.textContent=''; d.addEventListener('click', ()=>{ if(d.dataset.active==='1'){ d.dataset.active='0'; d.style.background='rgba(255,255,255,0.02)'; scoreEl.textContent = parseInt(scoreEl.textContent||0)+1; } }); board.appendChild(d); holes.push(d); } scoreEl.textContent=0; }
+    function spawn(){ holes.forEach(h=>{ h.dataset.active='0'; h.style.background='rgba(255,255,255,0.02)'; h.textContent=''; }); const i=Math.floor(Math.random()*holes.length); const h=holes[i]; h.dataset.active='1'; h.style.background='#ff6b6b'; setTimeout(()=>{ h.dataset.active='0'; h.style.background='rgba(255,255,255,0.02)'; },700); }
+    startBtn.addEventListener('click', ()=>{ clearInterval(timer); scoreEl.textContent=0; timer=setInterval(spawn,800); }); resetBtn.addEventListener('click', ()=>{ clearInterval(timer); init(); }); init(); })();
+
+  // ---------- Catch ----------
+  (function(){ const canvas=document.getElementById('catch-canvas'); if(!canvas) return; const ctx=canvas.getContext('2d'); const startBtn=document.getElementById('catch-start'); const resetBtn=document.getElementById('catch-reset'); const scoreEl=document.getElementById('catch-score'); let bucket={x:200,w:100}, items=[], running=false, timer;
+    function init(){ bucket.x=(canvas.width-bucket.w)/2; items=[]; scoreEl.textContent=0; }
+    function draw(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle='#3b82f6'; ctx.fillRect(bucket.x, canvas.height-24, bucket.w, 16); ctx.fillStyle='#ffb86b'; for(const it of items){ ctx.beginPath(); ctx.arc(it.x,it.y,8,0,Math.PI*2); ctx.fill(); } }
+    function step(){ for(let i=items.length-1;i>=0;i--){ items[i].y += items[i].vy; if(items[i].y > canvas.height-24){ // check catch
+          if(items[i].x > bucket.x && items[i].x < bucket.x+bucket.w){ scoreEl.textContent = parseInt(scoreEl.textContent||0)+1; items.splice(i,1); } else items.splice(i,1); } } if(Math.random()<0.05) items.push({x:Math.random()*canvas.width, y:0, vy:2+Math.random()*2}); draw(); }
+    window.addEventListener('keydown', e=>{ if(document.getElementById('catch').style.display==='none') return; if(e.key==='ArrowLeft' || e.key==='a') bucket.x = Math.max(0, bucket.x-20); if(e.key==='ArrowRight' || e.key==='d') bucket.x = Math.min(canvas.width-bucket.w, bucket.x+20); draw(); });
+    startBtn.addEventListener('click', ()=>{ if(running) return; init(); running=true; timer=setInterval(step,40); }); resetBtn.addEventListener('click', ()=>{ running=false; clearInterval(timer); init(); draw(); }); init(); draw(); })();
+
+  </script>
+</body>
+</html>
